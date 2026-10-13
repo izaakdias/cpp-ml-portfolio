@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
       if (port < 1 || port > 65535)
         throw std::invalid_argument("Invalid port");
       httplib::Server server;
+      server.new_task_queue = [] { return new httplib::ThreadPool(2, 2, 16); };
       server.set_payload_max_length(64 * 1024);
       server.Get("/health", [&](const auto&, auto& response) {
         response.set_content(engine.describe().dump(), "application/json");

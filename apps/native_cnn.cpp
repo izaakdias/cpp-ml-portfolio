@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
     Json history = Json::array();
     std::filesystem::path root = args.get("artifacts", "artifacts");
     std::filesystem::create_directories(root / "checkpoints");
-    auto checkpoint = root / "checkpoints/lenet.pt";
+    auto checkpoint = root / "checkpoints" / ("lenet-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())+".pt");
     for (int epoch = 1; epoch <= epochs; ++epoch) {
       model.train();
       auto shuffled = torch::randperm(n, torch::kInt64);
@@ -133,15 +133,16 @@ int main(int argc, char** argv) {
                     {"validation_accuracy", best},
                     {"train_samples", n},
                     {"test_samples", ty.size(0)}};
+    torch::NoGradGuard no_grad;
+    auto logits = model.forward(tx.narrow(0, 0, 3)).contiguous();
+    auto sample_logits = std::vector<float>(logits.data_ptr<float>(), logits.data_ptr<float>() + logits.numel());
     auto artifact =
         save_artifact(root, "cnn", {{"architecture", "LeNet"}, {"parameters", parameters}},
-                      {{"metrics", metrics},
+                      {{"metrics", metrics}, {"sample_logits",sample_logits},
                        {"history", history},
                        {"seed", 41},
                        {"preprocess", "float32 NCHW grayscale /255"},
                        {"train_sha256", sha256(directory / "train-images-idx3-ubyte")}});
-    torch::NoGradGuard no_grad;
-    auto logits = model.forward(tx.narrow(0, 0, 3)).contiguous();
     write_json(
         root / "cnn-native-logits.json",
         std::vector<float>(logits.data_ptr<float>(), logits.data_ptr<float>() + logits.numel()));

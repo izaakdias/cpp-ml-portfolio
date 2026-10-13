@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
       if (workers < 1 || workers > 32 || port < 1 || port > 65535)
         throw std::invalid_argument("Invalid worker count or port");
       httplib::Server server;
-      server.new_task_queue = [workers] { return new httplib::ThreadPool(workers); };
+      server.new_task_queue = [workers] { return new httplib::ThreadPool(workers, workers, 64); };
       server.set_payload_max_length(4 * 1024 * 1024);
       std::counting_semaphore<64> slots(workers);
       server.Get("/health", [&](const auto&, auto& response) {

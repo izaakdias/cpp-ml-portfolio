@@ -98,14 +98,17 @@ class MainActivity : ComponentActivity() {
                             val start = System.nanoTime(); val values = detector?.detect(image) ?: floatArrayOf()
                             val milliseconds = (System.nanoTime()-start)/1e6
                             val rotated = image.imageInfo.rotationDegrees%180!=0
-                            val w = if(rotated) image.height else image.width; val h = if(rotated) image.width else image.height
+                            val w = if(rotated) image.cropRect.height() else image.cropRect.width()
+                            val h = if(rotated) image.cropRect.width() else image.cropRect.height()
                             runOnUiThread { if(!destroyed) { overlay.update(values,w,h); status.text = "${values.size/6} objetos • ${"%.1f".format(milliseconds)} ms • offline" } }
                         }
                     } catch(error: Exception) { runOnUiThread { if(!destroyed) status.text = "Inferência falhou: ${error.message}" } }
                     finally { image.close() }
                 }
                 provider!!.unbindAll()
-                provider!!.bindToLifecycle(this,CameraSelector.DEFAULT_BACK_CAMERA,cameraPreview,analysis)
+                val viewport = preview.viewPort ?: throw IllegalStateException("Preview ainda não foi dimensionado")
+                val group = UseCaseGroup.Builder().addUseCase(cameraPreview).addUseCase(analysis!!).setViewPort(viewport).build()
+                provider!!.bindToLifecycle(this,CameraSelector.DEFAULT_BACK_CAMERA,group)
             } catch(error: Exception) { status.text = "Câmera indisponível: ${error.message}" }
         },ContextCompat.getMainExecutor(this))
     }

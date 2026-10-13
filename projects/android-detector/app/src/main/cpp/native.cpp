@@ -30,7 +30,8 @@ float overlap(const float* a, const float* b) {
 }
 }  // namespace
 extern "C" JNIEXPORT jbyteArray JNICALL Java_dev_izaak_portfolio_detector_NativePixels_rgb(
-    JNIEnv* env, jobject, jobject y, jobject u, jobject v, jint width, jint height, jint yr,
+    JNIEnv* env, jobject, jobject y, jobject u, jobject v, jint width, jint height,
+    jint left, jint top, jint right, jint bottom, jint yr,
     jint ur, jint vr, jint up, jint vp, jint rotation) {
   if (width < 2 || height < 2 || width > 8192 || height > 8192 ||
       (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)) {
@@ -38,12 +39,14 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_dev_izaak_portfolio_detector_Native
     return nullptr;
   }
   Plane yp = plane(env, y, yr, 1), uv = plane(env, u, ur, up), vv = plane(env, v, vr, vp);
+  if(left<0||top<0||right>width||bottom>height||right<=left||bottom<=top){invalid(env,"Invalid crop rectangle");return nullptr;}
   if (!valid(yp, width, height) || !valid(uv, (width + 1) / 2, (height + 1) / 2) ||
       !valid(vv, (width + 1) / 2, (height + 1) / 2)) {
     invalid(env, "Invalid YUV plane strides/capacity");
     return nullptr;
   }
-  int rw = rotation % 180 ? height : width, rh = rotation % 180 ? width : height;
+  int cw=right-left,ch=bottom-top;
+  int rw = rotation % 180 ? ch : cw, rh = rotation % 180 ? cw : ch;
   std::vector<jbyte> output(300 * 300 * 3);
   for (int oy = 0; oy < 300; ++oy)
     for (int ox = 0; ox < 300; ++ox) {
@@ -51,14 +54,15 @@ extern "C" JNIEXPORT jbyteArray JNICALL Java_dev_izaak_portfolio_detector_Native
           ry = std::min(rh - 1, (2 * oy + 1) * rh / 600), sx = rx, sy = ry;
       if (rotation == 90) {
         sx = ry;
-        sy = height - 1 - rx;
+        sy = ch - 1 - rx;
       } else if (rotation == 180) {
-        sx = width - 1 - rx;
-        sy = height - 1 - ry;
+        sx = cw - 1 - rx;
+        sy = ch - 1 - ry;
       } else if (rotation == 270) {
-        sx = width - 1 - ry;
+        sx = cw - 1 - ry;
         sy = rx;
       }
+      sx+=left;sy+=top;
       int yy = std::max(0, int(yp.data[sy * yp.row + sx]) - 16),
           uu = int(uv.data[(sy / 2) * uv.row + (sx / 2) * uv.pixel]) - 128,
           vvvalue = int(vv.data[(sy / 2) * vv.row + (sx / 2) * vv.pixel]) - 128;

@@ -8,6 +8,7 @@ import java.nio.ByteBuffer
 object NativePixels {
     init { System.loadLibrary("detector_native") }
     external fun rgb(y: ByteBuffer, u: ByteBuffer, v: ByteBuffer, width: Int, height: Int,
+                     left: Int, top: Int, right: Int, bottom: Int,
                      yr: Int, ur: Int, vr: Int, up: Int, vp: Int, rotation: Int): ByteArray
     external fun filter(boxes: FloatArray, classes: FloatArray, scores: FloatArray,
                         count: Int, threshold: Float): FloatArray
@@ -22,8 +23,10 @@ class Detector(model: File) : AutoCloseable {
     fun detect(image: ImageProxy): FloatArray {
         require(image.planes.size == 3)
         val planes = image.planes
+        val crop = image.cropRect
         val input = NativePixels.rgb(planes[0].buffer.slice(), planes[1].buffer.slice(), planes[2].buffer.slice(),
-            image.width, image.height, planes[0].rowStride, planes[1].rowStride, planes[2].rowStride,
+            image.width, image.height, crop.left, crop.top, crop.right, crop.bottom,
+            planes[0].rowStride, planes[1].rowStride, planes[2].rowStride,
             planes[1].pixelStride, planes[2].pixelStride, image.imageInfo.rotationDegrees)
         OnnxTensor.createTensor(environment, ByteBuffer.wrap(input), longArrayOf(1,300,300,3), OnnxJavaType.UINT8).use { tensor ->
             session.run(mapOf("inputs" to tensor)).use { result ->
