@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                         check(temporary.renameTo(model)) { "Não foi possível instalar o modelo" }
                     } finally { connection.disconnect(); temporary.delete() }
                 }
-                detector?.close(); detector = Detector(model)
+                detector?.close(); detector = null; detector = Detector(model)
                 runOnUiThread { if(!destroyed) { status.text = "Modelo pronto. Inferência local; imagens não são enviadas."; finished(); requestCamera() } }
             } catch (error: Exception) {
                 runOnUiThread { if(!destroyed) { status.text = error.message ?: "Falha ao preparar modelo"; finished() } }
@@ -79,6 +79,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     private fun requestCamera() {
+        if(destroyed || !lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) return
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED) startCamera()
         else permission.launch(Manifest.permission.CAMERA)
     }

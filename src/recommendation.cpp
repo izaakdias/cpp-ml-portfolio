@@ -114,15 +114,20 @@ Json MatrixFactorization::recommend(const std::string& user, std::size_t limit) 
   std::vector<std::pair<double, std::string>> scores;
   for (const auto& [id, index] : item_index_) {
     (void)index;
-    if (!seen_.at(user).contains(id))
-      scores.emplace_back(predict(user, id), id);
+    if (!seen_.at(user).contains(id)) {
+      int u = user_index_.at(user);
+      scores.emplace_back(
+          mean_ + user_bias_(u) + item_bias_(index) + users_.row(u).dot(items_.row(index)), id);
+    }
   }
   std::sort(scores.begin(), scores.end(), [](const auto& a, const auto& b) {
     return a.first == b.first ? a.second < b.second : a.first > b.first;
   });
   Json result = Json::array();
   for (std::size_t i = 0; i < std::min(limit, scores.size()); ++i)
-    result.push_back({{"item_id", scores[i].second}, {"predicted_rating", scores[i].first}});
+    result.push_back({{"item_id", scores[i].second},
+                      {"ranking_score", scores[i].first},
+                      {"predicted_rating", std::clamp(scores[i].first, 1.0, 5.0)}});
   return result;
 }
 Json MatrixFactorization::json() const {

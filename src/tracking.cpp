@@ -74,8 +74,9 @@ void ExperimentTracker::log(const std::string& run_id, const Json& parameters,
 }
 void ExperimentTracker::finish(const std::string& run_id, bool success) {
   auto end = std::chrono::duration_cast<std::chrono::milliseconds>(
-                 std::chrono::system_clock::now().time_since_epoch()).count();
+                 std::chrono::system_clock::now().time_since_epoch())
+                 .count();
   post("/api/2.0/mlflow/runs/update",
-       {{"run_id", run_id}, {"status", success ? "FINISHED" : "FAILED"}, {"end_time",end}});
+       {{"run_id", run_id}, {"status", success ? "FINISHED" : "FAILED"}, {"end_time", end}});
 }
 }  // namespace portfolio

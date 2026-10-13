@@ -26,6 +26,21 @@ int main(int argc, char** argv) {
     auto [train, test] = holdout_latest(read_ratings(path));
     MatrixFactorization model;
     model.fit(train, 16, args.integer("epochs", 20));
+    std::map<std::string, int> popularity;
+    std::map<std::string, std::set<std::string>> seen;
+    double mean = 0;
+    for (const auto& rating : train) {
+      ++popularity[rating.item];
+      seen[rating.user].insert(rating.item);
+      mean += rating.value;
+    }
+    mean /= train.size();
+    std::vector<std::pair<int, std::string>> popular;
+    for (const auto& [id, count] : popularity) popular.emplace_back(count, id);
+    std::sort(popular.begin(), popular.end(), [](const auto& a, const auto& b) {
+      return a.first == b.first ? a.second < b.second : a.first > b.first;
+    });
+    std::size_t baseline_hits = 0;
     Vector truth(test.size()), predictions(test.size());
     std::size_t hits = 0, relevant = 0;
     double discounted = 0;
@@ -34,6 +49,16 @@ int main(int argc, char** argv) {
       predictions(i) = model.predict(test[i].user, test[i].item);
       if (test[i].value >= 4) {
         ++relevant;
+        int count = 0;
+        for (const auto& [frequency, id] : popular) {
+          (void)frequency;
+          if (seen.at(test[i].user).contains(id))
+            continue;
+          if (id == test[i].item)
+            ++baseline_hits;
+          if (++count == 10)
+            break;
+        }
         auto items = model.recommend(test[i].user, 10);
         for (std::size_t rank = 0; rank < items.size(); ++rank)
           if (items[rank]["item_id"] == test[i].item) {
@@ -49,6 +74,10 @@ int main(int argc, char** argv) {
     metrics["ndcg_at_10_positive_holdouts"] =
         relevant ? Json(discounted / relevant) : Json(nullptr);
     metrics["positive_holdouts"] = relevant;
+    metrics["popularity_baseline_hit_rate_at_10"] =
+        relevant ? Json(double(baseline_hits) / relevant) : Json(nullptr);
+    metrics["mean_rating_baseline"] =
+        regression_metrics(truth, Vector::Constant(truth.size(), mean));
     metrics["training_ratings"] = train.size();
     metrics["test_ratings"] = test.size();
     auto artifact = save_artifact(

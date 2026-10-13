@@ -91,7 +91,10 @@ int main(int argc, char** argv) {
     Json history = Json::array();
     std::filesystem::path root = args.get("artifacts", "artifacts");
     std::filesystem::create_directories(root / "checkpoints");
-    auto checkpoint = root / "checkpoints" / ("lenet-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())+".pt");
+    auto checkpoint =
+        root / "checkpoints" /
+        ("lenet-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) +
+         ".pt");
     for (int epoch = 1; epoch <= epochs; ++epoch) {
       model.train();
       auto shuffled = torch::randperm(n, torch::kInt64);
@@ -135,10 +138,12 @@ int main(int argc, char** argv) {
                     {"test_samples", ty.size(0)}};
     torch::NoGradGuard no_grad;
     auto logits = model.forward(tx.narrow(0, 0, 3)).contiguous();
-    auto sample_logits = std::vector<float>(logits.data_ptr<float>(), logits.data_ptr<float>() + logits.numel());
+    auto sample_logits =
+        std::vector<float>(logits.data_ptr<float>(), logits.data_ptr<float>() + logits.numel());
     auto artifact =
         save_artifact(root, "cnn", {{"architecture", "LeNet"}, {"parameters", parameters}},
-                      {{"metrics", metrics}, {"sample_logits",sample_logits},
+                      {{"metrics", metrics},
+                       {"sample_logits", sample_logits},
                        {"history", history},
                        {"seed", 41},
                        {"preprocess", "float32 NCHW grayscale /255"},

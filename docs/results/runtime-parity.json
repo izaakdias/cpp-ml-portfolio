@@ -1,0 +1,21 @@
+{
+  "wordpiece": {
+    "cases": 16,
+    "mismatches": 0,
+    "details": []
+  },
+  "bert": {
+    "examples": 2,
+    "max_probability_abs_error": 6.278285547001161e-08,
+    "scope": "native WordPiece+C++ ORT versus reference tokenizer+Python ORT"
+  },
+  "vision": {
+    "images": 3,
+    "max_score_abs_error": 0.0,
+    "scope": "OpenCV resize/RGB/ImageNet normalization and ORT across native/Python"
+  },
+  "tabular": {
+    "rows": 3,
+    "float64_native_weights_vs_float32_onnx_max_abs": 2.995330644850469e-06
+  }
+}

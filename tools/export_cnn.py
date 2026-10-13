@@ -61,8 +61,11 @@ def main():
     )
     with torch.no_grad():
         python = model(torch.from_numpy(images)).numpy()
-    metadata = json.loads((project/run/"metadata.json").read_text())
-    native = np.array(metadata.get("sample_logits") or json.loads((ROOT / "artifacts/cnn-native-logits.json").read_text())).reshape(3,10)
+    metadata = json.loads((project / run / "metadata.json").read_text())
+    native = np.array(
+        metadata.get("sample_logits")
+        or json.loads((ROOT / "artifacts/cnn-native-logits.json").read_text())
+    ).reshape(3, 10)
     runtime = ort.InferenceSession(str(destination / "model.onnx")).run(
         None, {"image": images}
     )[0]
