@@ -23,16 +23,16 @@ class MainActivity : ComponentActivity() {
     @Volatile private var detector: Detector? = null
     @Volatile private var destroyed = false
     private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) startCamera() else status.text = "Permita o acesso à câmera para detectar objetos."
+        if (granted) startCamera() else status.text = "Allow camera access to detect objects."
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         modelStore = ModelStore(filesDir)
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; fitsSystemWindows = true }
-        status = TextView(this).apply { text = "Instale o modelo uma vez; depois a detecção funciona offline."; setPadding(20,20,20,20) }
+        status = TextView(this).apply { text = "Install the model once, then run detection offline."; setPadding(20,20,20,20) }
         root.addView(status)
-        val download = Button(this).apply { text = "Preparar modelo (28 MB)" }
+        val download = Button(this).apply { text = "Prepare model (28 MB)" }
         root.addView(download)
         val frame = FrameLayout(this)
         preview = PreviewView(this).apply { scaleType = PreviewView.ScaleType.FIT_CENTER; implementationMode = PreviewView.ImplementationMode.COMPATIBLE }
@@ -43,14 +43,14 @@ class MainActivity : ComponentActivity() {
         if (modelStore.exists()) prepareModel {}
     }
     private fun prepareModel(finished: () -> Unit) {
-        status.text = "Preparando modelo…"
+        status.text = "Preparing model…"
         worker.execute {
             try {
                 val model = modelStore.prepare()
                 detector?.close(); detector = null; detector = Detector(model)
-                runOnUiThread { if(!destroyed) { status.text = "Modelo pronto. Inferência local; imagens não são enviadas."; finished(); requestCamera() } }
+                runOnUiThread { if(!destroyed) { status.text = "Model ready. Inference runs locally; images stay on this device."; finished(); requestCamera() } }
             } catch (error: Exception) {
-                runOnUiThread { if(!destroyed) { status.text = error.message ?: "Falha ao preparar modelo"; finished() } }
+                runOnUiThread { if(!destroyed) { status.text = error.message ?: "Could not prepare the model"; finished() } }
             }
         }
     }
@@ -77,16 +77,16 @@ class MainActivity : ComponentActivity() {
                             val rotated = image.imageInfo.rotationDegrees%180!=0
                             val w = if(rotated) image.cropRect.height() else image.cropRect.width()
                             val h = if(rotated) image.cropRect.width() else image.cropRect.height()
-                            runOnUiThread { if(!destroyed) { overlay.update(values,w,h); status.text = "${values.size/6} objetos • ${"%.1f".format(milliseconds)} ms • offline" } }
+                            runOnUiThread { if(!destroyed) { overlay.update(values,w,h); status.text = "${values.size/6} objects • ${"%.1f".format(milliseconds)} ms • offline" } }
                         }
-                    } catch(error: Exception) { runOnUiThread { if(!destroyed) status.text = "Inferência falhou: ${error.message}" } }
+                    } catch(error: Exception) { runOnUiThread { if(!destroyed) status.text = "Inference failed: ${error.message}" } }
                     finally { image.close() }
                 }
                 provider!!.unbindAll()
-                val viewport = preview.viewPort ?: throw IllegalStateException("Preview ainda não foi dimensionado")
+                val viewport = preview.viewPort ?: throw IllegalStateException("Preview layout is not ready")
                 val group = UseCaseGroup.Builder().addUseCase(cameraPreview).addUseCase(analysis!!).setViewPort(viewport).build()
                 provider!!.bindToLifecycle(this,CameraSelector.DEFAULT_BACK_CAMERA,group)
-            } catch(error: Exception) { status.text = "Câmera indisponível: ${error.message}" }
+            } catch(error: Exception) { status.text = "Camera unavailable: ${error.message}" }
         },ContextCompat.getMainExecutor(this))
     }
     override fun onStart() { super.onStart(); if(::preview.isInitialized && detector!=null) requestCamera() }

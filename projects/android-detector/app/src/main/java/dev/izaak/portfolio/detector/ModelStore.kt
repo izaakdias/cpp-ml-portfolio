@@ -20,7 +20,7 @@ class ModelStore(private val directory: File) {
         connection.connectTimeout = 20000
         connection.readTimeout = 60000
         try {
-            require(connection.responseCode == 200) { "Falha no download HTTP ${connection.responseCode}" }
+            require(connection.responseCode == 200) { "HTTP download failed: ${connection.responseCode}" }
             connection.inputStream.use { input ->
                 temporary.outputStream().use { output ->
                     val buffer = ByteArray(65536)
@@ -29,13 +29,13 @@ class ModelStore(private val directory: File) {
                         val count = input.read(buffer)
                         if (count < 0) break
                         total += count
-                        require(total <= 31000000) { "Modelo maior que o limite" }
+                        require(total <= 31000000) { "Model exceeds the size limit" }
                         output.write(buffer, 0, count)
                     }
                 }
             }
-            require(hash(temporary) == checksum) { "Checksum do modelo inválido" }
-            check(temporary.renameTo(model)) { "Não foi possível instalar o modelo" }
+            require(hash(temporary) == checksum) { "Invalid model checksum" }
+            check(temporary.renameTo(model)) { "Could not install the model" }
             return model
         } finally {
             connection.disconnect()

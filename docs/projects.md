@@ -1,6 +1,6 @@
-# Executar os projetos
+# Running the projects
 
-Parta do quickstart do README e execute os comandos na raiz do repositório. Todos os binários aceitam `--help`; falhas produzem JSON em stderr e exit code 2.
+Start with the README quickstart and run these commands from the repository root. All binaries accept `--help`; failures emit JSON to stderr and exit with code 2.
 
 ## 1. ONNX inference engine
 
@@ -13,7 +13,7 @@ build/inference_engine --mode benchmark --warmup 10 --runs 200
 build/inference_engine --mode serve --workers 4
 ```
 
-O modelo de demonstração é a regressão Auto MPG treinada em C++, com normalização incluída no grafo. Aceita lotes `[batch,7]`. Contrato HTTP: `{"inputs":{"features":{"dtype":"float32","shape":[1,7],"data":[...]}}}`. Consulte `models/linear-schema.json` para ordem das colunas. Também aceita tensores int64/uint8, usados por BERT/SSD.
+The demo model is Auto MPG regression trained in C++, with normalization included in the graph. It accepts `[batch,7]` inputs. HTTP contract: `{"inputs":{"features":{"dtype":"float32","shape":[1,7],"data":[...]}}}`. See `models/linear-schema.json` for feature order. The runtime also accepts int64/uint8 tensors, used by BERT/SSD.
 
 ## 2. Industrial vision inspector
 
@@ -22,11 +22,11 @@ uv run python tools/vision_model.py
 build/vision_inspector --image data/mvtec/bottle/test/broken_large/000.png \
   --output artifacts/inspection.jpg
 build/vision_inspector --camera 0 --frames 300
-# Arquivo de vídeo em um formato que seu build OpenCV suporte:
+# Use a video format supported by your OpenCV build:
 build/vision_inspector --video sample.mp4 --headless --frames 100
 ```
 
-O script baixa apenas a categoria bottle de um mirror fixado e verifica cada imagem. Ajusta mean/scale de embeddings ResNet18 em 167 imagens normais; 42 normais calibram o limiar. Defeitos de teste não entram no ajuste. O score marca a imagem inteira; não desenha uma localização fictícia do defeito. O build mínimo de OpenCV não inclui FFmpeg; codecs de vídeo dependem do backend do sistema.
+The script downloads only the bottle category from a pinned mirror and verifies each image. It fits the mean/scale of ResNet18 embeddings on 167 normal images; 42 normal images calibrate the threshold. Test defects are excluded from fitting. The score applies to the whole image; defect localization is not provided. The minimal OpenCV build excludes FFmpeg; video codecs depend on the system backend.
 
 ## 3. Native sentiment service
 
@@ -37,7 +37,7 @@ build/sentiment_service --text 'This movie was excellent.'
 build/sentiment_service --mode serve --port 8081
 ```
 
-DistilBERT fine-tuned em SST-2, duas classes, **inglês**, sequence length 128. UTF-8, lowercase, NFD, retirada de acentos, pontuação/CJK, subpalavras, truncamento e padding são processados em C++. Probabilidade softmax não é garantia de calibração, explicação nem medida de qualidade em outro idioma.
+DistilBERT fine-tuned on SST-2, two classes, **English**, sequence length 128. UTF-8 handling, lowercase, NFD, accent stripping, punctuation/CJK splitting, subwords, truncation, and padding run in C++. Softmax probabilities do not guarantee calibration or explain predictions, and do not establish quality in another language.
 
 ## 4. Streaming anomaly monitor
 
@@ -48,7 +48,7 @@ build/anomaly_monitor --mode stream --stream data/nab-stream.jsonl \
   --state artifacts/device-state > artifacts/events.jsonl
 ```
 
-Cada linha: `{"device":"machine-1","timestamp_ms":123456789,"values":[83.2]}`. Após 24 leituras, gera score/alerta e distância à referência. Dispositivos têm janelas independentes. O checkpoint retém a versão do modelo e os últimos valores. Para retomar, forneça **somente timestamps posteriores** ao checkpoint; duplicatas/ordem regressiva são rejeitadas. Uma nova pasta `--state` inicia uma execução limpa. O replay em CSV pode incluir observações de treino; é demonstração de aplicação, não uma nova avaliação independente.
+Each line: `{"device":"machine-1","timestamp_ms":123456789,"values":[83.2]}`. After 24 readings, it emits a score/alert and reference distance. Each device has an independent window. The checkpoint retains the model version and recent values. To resume, supply **only timestamps after** the checkpoint; duplicates and decreasing timestamps are rejected. A new `--state` directory starts a clean run. CSV replay may include training observations; it demonstrates model application rather than providing a new independent evaluation.
 
 ## 5. Native recommender
 
@@ -57,7 +57,7 @@ build/recommender --epochs 20 --user 1
 build/recommender --mode recommend --user 1 --limit 10
 ```
 
-MovieLens 100k, 16 fatores, SGD, vieses de usuário/item, regularização. A segunda execução recupera o snapshot e não retreina. Filmes já vistos são excluídos. Avaliação retém a interação mais recente de cada usuário; RMSE usa todas as 943 retenções e ranking usa as 486 com rating ≥4. Os IDs de filmes podem ser associados ao arquivo `u.item` do dataset. Não há API de catálogo fictícia nem treino online implícito.
+MovieLens 100k, 16 factors, SGD, user/item biases, and regularization. The second command restores the snapshot without retraining. Previously seen movies are excluded. Evaluation holds out each user's latest interaction; RMSE uses all 943 holdouts and ranking uses the 486 with rating ≥4. Movie IDs can be joined to the dataset's `u.item` file. Catalog serving and online training are outside this application's scope.
 
 ## 6. Clustering explorer
 
@@ -67,7 +67,7 @@ build/clustering_explorer --epsilon 0.7 --minimum-points 5 --output artifacts/se
 uv run python tools/plot_clusters.py --output artifacts/clustering.png
 ```
 
-CSV gerado tem pc1, pc2 e assignments dos três métodos; normalização ocorre antes das distâncias. `--clusters` controla KMeans/GMM e `--epsilon` afeta DBSCAN. O rótulo UCI entra somente no ARI. A configuração padrão DBSCAN não recupera bem as variedades — o resultado é publicado como evidência da sensibilidade do método. Os artefatos são assignments exploratórios, não um modelo universal de predição para pontos novos.
+The output CSV contains pc1, pc2, and assignments from all three methods; normalization precedes distance calculations. `--clusters` controls KMeans/GMM and `--epsilon` affects DBSCAN. UCI labels are used only for ARI. The default DBSCAN configuration poorly recovers the varieties; the published result shows the method's sensitivity. Artifacts contain exploratory assignments, not a general prediction model for new points.
 
 ## 7. Tabular ML library
 
@@ -77,7 +77,7 @@ build/ml_baselines --task regression
 build/ml_baselines --data other.csv --task regression --seed 41
 ```
 
-CSV numérico com cabeçalho único; a última coluna é o target. O treino/validação/teste padrão é 60/20/20, com arredondamento e estratificação por classe no caso binário. O target de Wine é classe 1 versus outras; a normalização usa somente treino. Ridge e L2/k são escolhidos em validação. Os parâmetros selecionados não são ajustados no teste nem retreinados nele.
+Input is numeric CSV with unique headers; the last column is the target. The default training/validation/test split is 60/20/20, with rounding and class stratification for binary classification. Wine's target is class 1 versus the others; normalization uses training data only. Ridge and L2/k are selected on validation data. Selected parameters are neither tuned nor refitted on the test set.
 
 ## 8. Native CNN trainer
 
@@ -88,7 +88,7 @@ uv run python tools/export_cnn.py
 build/inference_engine --model models/cnn/model.onnx --input models/cnn/input.json --mode infer
 ```
 
-LeNet: conv 1→6→16 com kernels 5, average pooling, FC 256→120→84→10, ReLU, cross-entropy e Adam 0,001. 54.000 imagens treinam e 6.000 selecionam checkpoint; o teste oficial tem 10.000. IDX valida magic/dimensões/tamanho/classes. O exportador reconstrói os pesos nomeados do treino C++ e registra diferenças numéricas entre LibTorch, PyTorch e ONNX.
+LeNet: conv 1→6→16 with size-5 kernels, average pooling, FC 256→120→84→10, ReLU, cross-entropy, and Adam at 0.001. Training uses 54,000 images; 6,000 select the checkpoint; the official test set contains 10,000. IDX parsing validates magic values, dimensions, payload sizes, and classes. The exporter reconstructs named weights from C++ training and records numerical differences between LibTorch, PyTorch, and ONNX.
 
 ## 9. Native experiment tracker
 
@@ -96,12 +96,12 @@ LeNet: conv 1→6→16 com kernels 5, average pooling, FC 256→120→84→10, R
 uv sync --frozen --extra tracking
 uv run mlflow server --backend-store-uri sqlite:///.cache/mlflow.db \
   --artifacts-destination .cache/mlflow-artifacts --host 127.0.0.1 --port 5000
-# Outro terminal:
+# In another terminal:
 build/experiment_tracker --uri http://127.0.0.1:5000
 ```
 
-O cliente C++ cria/busca experimento, inicia run, registra params/metrics e finaliza FINISHED/FAILED. O artefato local registra o run ID remoto. `MLFLOW_TRACKING_TOKEN` habilita Bearer header. Não há upload de pesos para MLflow neste cliente; eles permanecem no registro local. Não é uma substituição completa do SDK MLflow.
+The C++ client creates/finds an experiment, starts a run, logs parameters/metrics, and finishes with FINISHED/FAILED. The local artifact records the remote run ID. `MLFLOW_TRACKING_TOKEN` enables a Bearer header. This client keeps weights in the local registry and does not upload them to MLflow. It implements a subset of the MLflow SDK's capabilities.
 
 ## 10. Android
 
-[Guia próprio: preparar, compilar e instalar](../projects/android-detector/README.md).
+[Android guide: prepare, build, and install](../projects/android-detector/README.md).

@@ -1,48 +1,48 @@
-# Arquitetura e decisões
+# Architecture and decisions
 
-## Estrutura comum
+## Shared structure
 
-Bibliotecas C++ e aplicações executáveis em um monorepo. Cada algoritmo tem contrato explícito, parâmetros validados e dependências limitadas. As aplicações decidem políticas de divisão/seleção; as classes de modelo realizam operações matemáticas. HTTP, MLflow e arquivos são adaptadores. O domínio não depende de Android, câmera ou Python.
+C++ libraries and executable applications share a monorepo. Each algorithm has an explicit contract, validated parameters, and limited dependencies. Applications choose splitting and selection policies; model classes perform mathematical operations. HTTP, MLflow, and files are adapters. The domain does not depend on Android, cameras, or Python.
 
 ```mermaid
 flowchart LR
-  Data[CSV / imagens / sensores] --> App[Aplicações C++]
-  App --> Core[Modelos e transformações]
-  App --> Registry[Registro de artefatos]
+  Data[CSV / images / sensors] --> App[C++ applications]
+  App --> Core[Models and transformations]
+  App --> Registry[Artifact registry]
   App --> Runtime[ONNX Runtime]
   App --> Tracking[MLflow REST]
-  Camera[CameraX] --> JNI[C++ YUV e NMS]
+  Camera[CameraX] --> JNI[C++ YUV and NMS]
   JNI --> Mobile[ONNX Runtime Android]
 ```
 
-Não há microserviços internos nem um framework próprio de plugins: nove binários usam componentes pequenos. Isso reduz configuração e facilita depuração. O custo é recompilar o consumidor quando o contrato da biblioteca muda; escalar equipes e serviços independentemente exigiria um processo de release mais formal.
+Nine binaries reuse small components in a single repository. This reduces configuration and simplifies debugging. Consumers must be recompiled when library contracts change; independent team and service scaling would require a more formal release process.
 
-## Decisões por projeto
+## Decisions by project
 
-| Projeto | Arquitetura escolhida e benefício | Alternativa e custo |
+| Project | Chosen architecture and benefit | Alternative and cost |
 |---|---|---|
-| ONNX engine | Uma sessão persistente, buffers de entrada com ownership e saídas copiadas; CLI/HTTP usam a mesma API. Evita dangling pointers e recarga de pesos por requisição. | SDK específico de cada framework pode expor mais operações, mas acopla runtime e pesos. Zero-copy reduz cópias e exige controle mais difícil de vida útil. |
-| Visão | OpenCV cuida de captura/pré-processamento; ONNX executa encoder e score juntos. Configuração vincula limiar ao SHA do modelo. | Treinar uma CNN supervisionada exige defeitos representativos. PatchCore/PaDiM detectam regiões e ganham expressividade, com memória, ajuste e implementação maiores. |
-| Sentimento | WordPiece próprio Unicode + DistilBERT já exportado; frontend HTTP fino. Consistência de tokenização é mensurada contra o tokenizer original. | Transformer treinado do zero demanda muitos dados e compute. Tokenizer externo reduz manutenção, mas acrescenta outra dependência nativa. DistilBERT preserva custo menor que BERT base. |
-| Anomalias | Isolation Forest sobre mean/std/last/range por sensor; janelas isoladas por dispositivo. Checkpoints versionados mantêm a referência ao modelo de treinamento. | Autoencoder/TCN aprendem relações temporais mais ricas, com maior custo e necessidade de dados. A janela estatística perde ordem interna e padrões de frequência. |
-| Recomendação | Fatoração explícita + vieses, vetores contíguos, busca exaustiva e snapshots recuperáveis. Boa base auditável para ratings. | ALS implícito/BPR otimizam outro problema; ANN ajuda catálogos grandes, acrescentando índice e recall aproximado. Conteúdo é necessário para cold start. |
-| Clustering | Algoritmos separados e projeção PCA; rótulo real é usado somente no ARI da avaliação. Permite observar falhas de cada hipótese. | GMM de covariância completa modela correlações, mas exige regularização e mais dados. DBSCAN com índice espacial reduz custo; HDBSCAN evita um epsilon global. |
-| Tabular | Transformação ajustada somente no treino, seleção em validação e QR com regularização. Baselines mostram valor do modelo. | Boosting captura não linearidades e interações, com outra dependência e menor transparência. Normal equations são mais simples, mas agravam condicionamento numérico. |
-| CNN | LibTorch em C++, Adam e melhor checkpoint por validação. Parâmetros nomeados são exportados para reconstrução/ONNX e comparação numérica. | Python é mais conveniente para experimentação. O frontend C++ demonstra ownership, treinamento e implantação na mesma linguagem; compila mais lentamente. LeNet é adequada ao MNIST, limitada em imagens complexas. |
-| MLflow | Cliente REST síncrono com timeouts; treinamento falha explicitamente se o registro falhar. Logs remotos e pesos locais têm identificadores vinculados. | Um cliente SDK completo suporta uploads/retries/autologging; aumenta tamanho e acoplamento. Uma fila durável permite tolerar indisponibilidade, mas requer estado/reconciliação. |
-| Android | CameraX `KEEP_ONLY_LATEST`, executor único, sessão ORT persistente, JNI para pixels/rotação/NMS, overlay FIT_CENTER. Não acumula frames antigos. | Inferência remota depende de rede e transmite imagens. GPU/NNAPI pode reduzir tempo, mas depende de operadores e aparelhos; CPU é a configuração inicial comparável. |
+| ONNX engine | A persistent session, owned input buffers, and copied outputs; CLI/HTTP share the same API. Prevents dangling pointers and per-request weight reloads. | Framework-specific SDKs may expose more operations but couple the runtime to model formats. Zero-copy reduces copying and requires stricter lifetime management. |
+| Vision | OpenCV handles capture/preprocessing; ONNX executes the encoder and scorer together. Configuration binds the threshold to the model SHA. | Supervised CNN training requires representative defects. PatchCore/PaDiM can localize anomalies, with greater memory, tuning, and implementation costs. |
+| Sentiment | Custom Unicode WordPiece + exported DistilBERT behind a small HTTP frontend. Tokenization consistency is measured against the original tokenizer. | Training a transformer from scratch requires substantial data and compute. An external tokenizer reduces maintenance but adds a native dependency. DistilBERT costs less to run than BERT base. |
+| Anomalies | Isolation Forest over mean/std/last/range per sensor, with isolated per-device windows. Versioned checkpoints retain the training model reference. | Autoencoders/TCNs learn richer temporal relationships at greater data and compute cost. Statistical windows lose internal ordering and frequency patterns. |
+| Recommendation | Explicit matrix factorization + biases, contiguous vectors, exhaustive scoring, and recoverable snapshots. An auditable baseline for ratings. | Implicit ALS/BPR optimize different objectives; ANN helps large catalogs but adds an index and approximate recall. Content features are needed for cold start. |
+| Clustering | Separate algorithms and PCA projection; ground-truth labels are used only for evaluation ARI. Makes each method's assumptions and failures visible. | Full-covariance GMMs model correlations but need more data and regularization. Spatial indexing reduces DBSCAN cost; HDBSCAN avoids a single global epsilon. |
+| Tabular | Transformations fitted only on training data, validation-based selection, and regularized QR. Baselines quantify the model's contribution. | Boosting captures nonlinearities and interactions, with another dependency and lower transparency. Normal equations are simpler but worsen numerical conditioning. |
+| CNN | C++ LibTorch, Adam, and the best validation checkpoint. Named parameters are exported for reconstruction/ONNX and numerical comparison. | Python is more convenient for experimentation. The C++ frontend demonstrates ownership, training, and deployment in one language, with slower compilation. LeNet suits MNIST but is limited on complex imagery. |
+| MLflow | Synchronous REST client with timeouts; training fails explicitly if tracking fails. Remote logs and local weights have linked identifiers. | A complete SDK supports uploads/retries/autologging but increases size and coupling. A durable queue tolerates downtime and requires state and reconciliation. |
+| Android | CameraX `KEEP_ONLY_LATEST`, one executor, a persistent ORT session, JNI pixels/rotation/NMS, and a FIT_CENTER overlay. Avoids accumulating stale frames. | Remote inference depends on a network and transmits images. GPU/NNAPI may reduce latency but depends on operators and devices; CPU provides the initial comparison baseline. |
 
-## Persistência
+## Persistence
 
-`save_artifact` grava um diretório temporário, calcula SHA de modelo e metadados, renomeia a versão completa e publica `latest.json` por rename no mesmo filesystem. Leitura verifica manifestos. Uma promoção explícita permite rollback. Escritas concorrentes têm versões distintas; a última promoção vence.
+`save_artifact` writes a temporary directory, computes model and metadata SHA checksums, renames the completed version, and publishes `latest.json` by rename on the same filesystem. Reads verify manifests. Explicit promotion supports rollback. Concurrent writes produce distinct versions; the last promotion wins.
 
-É um registro **local**: não implementa fsync para durabilidade contra perda de energia, transação entre filesystems, armazenamento remoto, assinatura/autenticidade ou garbage collection. SHA detecta corrupção acidental; não autentica um produtor. A aplicação de streaming persiste ao fim de cada arquivo/batch. Se interrompida antes disso, o batch deve ser reprocessado e os consumidores devem deduplicar eventos por dispositivo/timestamp/modelo.
+This is a **local** registry: it does not implement fsync for power-loss durability, cross-filesystem transactions, remote storage, signatures/authenticity, or garbage collection. SHA detects accidental corruption; it does not authenticate a producer. The streaming application persists at the end of each file/batch. If interrupted earlier, the batch must be replayed and consumers must deduplicate events by device/timestamp/model.
 
-## Limites operacionais
+## Operational limits
 
-- DBSCAN e silhouette/exploração trabalham em memória; DBSCAN é O(n²). Ranking de recomendações percorre o catálogo inteiro.
-- Servidores têm limite de payload e pool limitado. A fila de trabalho é limitada; sobrecarga precisa de controle adicional no gateway.
-- Há exceções explícitas para shape, dtype, valores não finitos, nomes de tensor e entradas incompatíveis.
-- Predição de usuário desconhecido é rejeitada; item desconhecido usa média + viés do usuário. Não existe personalização para cold start.
-- O estado de streaming suporta até 1.024 dispositivos; timestamps precisam aumentar por dispositivo. O aviso de distribuição usa distância padronizada à referência de treino, sem promessa de detector estatístico formal de drift.
-- CLI e servidor aceitam modelos locais de confiança. O código não executa modelos arbitrários fornecidos por usuários externos.
+- Clustering exploration runs in memory; DBSCAN is O(n²). Recommendation ranking scans the entire catalog.
+- Servers enforce payload limits and bounded worker pools/queues. Overload needs additional control at the deployment gateway.
+- Explicit exceptions cover shape, dtype, nonfinite values, tensor names, and incompatible inputs.
+- Predictions for unknown users are rejected; unknown items use the mean + user bias. Cold-start personalization is not implemented.
+- Streaming state supports up to 1,024 devices; timestamps must increase per device. The distribution warning uses standardized distance from the training reference, without claiming a formal statistical drift detector.
+- The CLI and server load trusted local models. Arbitrary models supplied by external users are outside the supported deployment contract.
