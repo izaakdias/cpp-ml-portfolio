@@ -153,7 +153,10 @@ Matrix pca(const Matrix& x, int components) {
   Eigen::SelfAdjointEigenSolver<Matrix> solver(covariance);
   if (solver.info() != Eigen::Success)
     throw std::runtime_error("PCA decomposition failed");
-  return centered * solver.eigenvectors().rightCols(components);
+  Matrix axes(x.cols(), components);
+  for (int component = 0; component < components; ++component)
+    axes.col(component) = solver.eigenvectors().col(x.cols() - 1 - component);
+  return centered * axes;
 }
 double adjusted_rand(const Vector& truth, const Eigen::VectorXi& clusters) {
   if (truth.size() != clusters.size() || truth.size() < 2 || !truth.allFinite())

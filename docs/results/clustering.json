@@ -5,6 +5,5 @@
     "gmm_diagonal_ari": 0.6789831632262734,
     "kmeans_ari": 0.7732937360806309,
     "kmeans_inertia": 430.6589731513007
-  },
-  "projection": "artifacts/clusters.csv"
+  }
 }

@@ -125,7 +125,7 @@ def main():
     report["tabular"] = {
         "rows": len(expected),
         "float64_native_weights_vs_float32_onnx_max_abs": float(
-            np.max(np.abs(expected - result))
+            np.max(np.abs(expected - np.array(result).reshape(expected.shape)))
         ),
     }
     destination = ROOT / "docs/results/runtime-parity.json"

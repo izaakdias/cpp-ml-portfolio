@@ -37,4 +37,6 @@ O benchmark da CLI inclui validação de JSON já carregado, alocação de tenso
 
 ## Melhorias orientadas pelas medidas
 
+O baseline de popularidade atingiu **HitRate@10 de 0,1111**, contra **0,0514** da fatoração. Para ratings, a fatoração teve RMSE **1,0092**, contra **1,2127** do baseline de média. Portanto, nesta configuração, melhorar a estimativa de rating não resultou em melhorar o ranking. O ranking usa score contínuo antes do clipping 1..5; a recomendação exibe score e rating limitado separadamente.
+
 O recommender é uma base de ratings e seu ranking completo ainda é fraco. Compare com popularidade, adote protocolo temporal global e avalie BPR/ALS implícito antes de usar o sistema para recomendação comercial. O detector NAB favorece recall e gera falsos alertas; valide limiar, custo por incidente e política de cooldown em sensores reais. DBSCAN precisa de estudo de densidade/epsilon e pode exigir HDBSCAN. Estas limitações fazem parte do resultado publicado.

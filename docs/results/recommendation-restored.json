@@ -1,44 +1,54 @@
 {
   "recommendations": [
     {
-      "item_id": "285",
-      "predicted_rating": 5.0
-    },
-    {
-      "item_id": "408",
-      "predicted_rating": 5.0
+      "item_id": "750",
+      "predicted_rating": 5.0,
+      "ranking_score": 5.294799775815646
     },
     {
       "item_id": "511",
-      "predicted_rating": 5.0
+      "predicted_rating": 5.0,
+      "ranking_score": 5.228710908764033
     },
     {
-      "item_id": "750",
-      "predicted_rating": 5.0
+      "item_id": "408",
+      "predicted_rating": 5.0,
+      "ranking_score": 5.0685093794542695
+    },
+    {
+      "item_id": "285",
+      "predicted_rating": 5.0,
+      "ranking_score": 5.050528293132988
     },
     {
       "item_id": "647",
-      "predicted_rating": 4.975158452408859
+      "predicted_rating": 4.975158452408859,
+      "ranking_score": 4.975158452408859
     },
     {
       "item_id": "512",
-      "predicted_rating": 4.92319618527591
+      "predicted_rating": 4.92319618527591,
+      "ranking_score": 4.92319618527591
     },
     {
       "item_id": "474",
-      "predicted_rating": 4.904506571066058
+      "predicted_rating": 4.904506571066058,
+      "ranking_score": 4.904506571066058
     },
     {
       "item_id": "357",
-      "predicted_rating": 4.84085220532038
+      "predicted_rating": 4.84085220532038,
+      "ranking_score": 4.84085220532038
     },
     {
       "item_id": "483",
-      "predicted_rating": 4.775487185794948
+      "predicted_rating": 4.775487185794948,
+      "ranking_score": 4.775487185794948
     },
     {
       "item_id": "661",
-      "predicted_rating": 4.773316125694227
+      "predicted_rating": 4.773316125694227,
+      "ranking_score": 4.773316125694227
     }
   ]
 }

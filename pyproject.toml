@@ -17,6 +17,7 @@ dependencies = [
     "pytest>=8,<10",
     "ruff>=0.9,<1",
     "opencv-python-headless>=4.12,<5",
+    "matplotlib>=3.9,<4",
 ]
 
 [project.optional-dependencies]

@@ -39,6 +39,7 @@ jobs:
           build/ml_baselines
           build/ml_baselines --task regression
           build/clustering_explorer
+          uv run python tools/plot_clusters.py
           build/anomaly_monitor
           build/anomaly_monitor --mode stream
           build/recommender --epochs 2

@@ -3,7 +3,6 @@ package dev.izaak.portfolio.detector
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.Gravity
 import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,10 +10,6 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
@@ -22,18 +17,18 @@ class MainActivity : ComponentActivity() {
     private lateinit var preview: PreviewView
     private lateinit var overlay: Overlay
     private lateinit var status: TextView
+    private lateinit var modelStore: ModelStore
     private var provider: ProcessCameraProvider? = null
     private var analysis: ImageAnalysis? = null
-    private var detector: Detector? = null
+    @Volatile private var detector: Detector? = null
     @Volatile private var destroyed = false
     private val permission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startCamera() else status.text = "Permita o acesso à câmera para detectar objetos."
     }
-    private val checksum = "b8fba5e404077d4048d27fcd1667e85e27e192eb9bf51e696c46a3acd7d21058"
-    private val modelUrl = "https://media.githubusercontent.com/media/onnx/models/main/validated/vision/object_detection_segmentation/ssd-mobilenetv1/model/ssd_mobilenet_v1_12.onnx"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        modelStore = ModelStore(filesDir)
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; fitsSystemWindows = true }
         status = TextView(this).apply { text = "Instale o modelo uma vez; depois a detecção funciona offline."; setPadding(20,20,20,20) }
         root.addView(status)
@@ -45,32 +40,13 @@ class MainActivity : ComponentActivity() {
         frame.addView(preview); frame.addView(overlay)
         root.addView(frame, LinearLayout.LayoutParams(-1,0,1f)); setContentView(root)
         download.setOnClickListener { download.isEnabled = false; prepareModel { download.isEnabled = true } }
-        if (File(filesDir,"ssd.onnx").exists()) prepareModel {}
-    }
-    private fun hash(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input -> val buffer = ByteArray(65536); while (true) { val n = input.read(buffer); if(n<0) break; digest.update(buffer,0,n) } }
-        return digest.digest().joinToString("") { "%02x".format(it) }
+        if (modelStore.exists()) prepareModel {}
     }
     private fun prepareModel(finished: () -> Unit) {
         status.text = "Preparando modelo…"
         worker.execute {
             try {
-                val model = File(filesDir,"ssd.onnx")
-                if (!model.exists() || hash(model) != checksum) {
-                    val temporary = File(filesDir,"ssd.download")
-                    val connection = URL(modelUrl).openConnection() as HttpURLConnection
-                    connection.connectTimeout = 20000; connection.readTimeout = 60000
-                    try {
-                        require(connection.responseCode == 200) { "Falha no download HTTP ${connection.responseCode}" }
-                        connection.inputStream.use { input -> temporary.outputStream().use { output ->
-                            val buffer = ByteArray(65536); var total = 0
-                            while(true) { val n = input.read(buffer); if(n<0) break; total += n; require(total<=31000000) { "Modelo maior que o limite" }; output.write(buffer,0,n) }
-                        } }
-                        require(hash(temporary) == checksum) { "Checksum do modelo inválido" }
-                        check(temporary.renameTo(model)) { "Não foi possível instalar o modelo" }
-                    } finally { connection.disconnect(); temporary.delete() }
-                }
+                val model = modelStore.prepare()
                 detector?.close(); detector = null; detector = Detector(model)
                 runOnUiThread { if(!destroyed) { status.text = "Modelo pronto. Inferência local; imagens não são enviadas."; finished(); requestCamera() } }
             } catch (error: Exception) {
@@ -90,7 +66,7 @@ class MainActivity : ComponentActivity() {
             if(destroyed || !lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) return@addListener
             try {
                 provider = future.get()
-                val cameraPreview = Preview.Builder().build().also { it.surfaceProvider = preview.surfaceProvider }
+                val cameraPreview = Preview.Builder().build().also { it.setSurfaceProvider(preview.surfaceProvider) }
                 analysis?.clearAnalyzer()
                 analysis = ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
                 analysis!!.setAnalyzer(worker) { image ->

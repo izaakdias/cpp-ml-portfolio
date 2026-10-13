@@ -64,6 +64,7 @@ MovieLens 100k, 16 fatores, SGD, vieses de usuário/item, regularização. A seg
 ```bash
 build/clustering_explorer
 build/clustering_explorer --epsilon 0.7 --minimum-points 5 --output artifacts/seeds-eps07.csv
+uv run python tools/plot_clusters.py --output artifacts/clustering.png
 ```
 
 CSV gerado tem pc1, pc2 e assignments dos três métodos; normalização ocorre antes das distâncias. `--clusters` controla KMeans/GMM e `--epsilon` afeta DBSCAN. O rótulo UCI entra somente no ARI. A configuração padrão DBSCAN não recupera bem as variedades — o resultado é publicado como evidência da sensibilidade do método. Os artefatos são assignments exploratórios, não um modelo universal de predição para pontos novos.

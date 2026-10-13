@@ -37,6 +37,10 @@ Resultados de uma execução local no macOS arm64, CPU. As políticas de divisã
 
 [Resultados em JSON](docs/results/) · [Arquitetura e trade-offs](docs/architecture.md) · [Modelos e avaliação](docs/validation.md) · [Licenças dos dados/modelos](docs/data-and-licenses.md)
 
+![Comparação dos agrupamentos de Seeds](docs/results/clustering.png)
+
+Fonte do gráfico: dados UCI Seeds (CC BY 4.0), projeção e assignments calculados pela aplicação C++.
+
 ## Começar
 
 Requisitos: CMake ≥3.25, Ninja, compilador C++20, OpenSSL e [uv](https://docs.astral.sh/uv/). Plataformas de runtime pré-compilado: macOS Apple Silicon, Linux x64 e Linux arm64. O treinamento nativo usa a instalação de LibTorch fornecida pelo wheel de PyTorch.
