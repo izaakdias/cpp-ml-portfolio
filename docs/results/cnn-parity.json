@@ -1,0 +1,9 @@
+{
+  "native_python_max_abs": 0.0,
+  "native_onnx_max_abs": 1.9073486328125e-06,
+  "predicted_digits": [
+    7,
+    2,
+    1
+  ]
+}

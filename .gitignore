@@ -1,0 +1,13 @@
+build*/
+.venv/
+.cache/
+artifacts/
+data/
+models/
+__pycache__/
+*.pyc
+.DS_Store
+.gradle/
+local.properties
+*.apk
+cmake/runtime-local.cmake

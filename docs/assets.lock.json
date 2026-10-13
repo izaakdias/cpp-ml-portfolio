@@ -1,0 +1,107 @@
+{
+  "wine": {
+    "url": "https://archive.ics.uci.edu/static/public/109/wine.zip",
+    "source": "https://archive.ics.uci.edu/dataset/109/wine",
+    "license": "CC BY 4.0",
+    "sha256": "2bae62c4481220623579d4c4fb36b55652b6b75e06e49fa1981b8198362dfdab",
+    "bytes": 6038
+  },
+  "mpg": {
+    "url": "https://archive.ics.uci.edu/static/public/9/auto+mpg.zip",
+    "source": "https://archive.ics.uci.edu/dataset/9/auto+mpg",
+    "license": "CC BY 4.0",
+    "sha256": "5fc1507522b73b8050d3aa45df51eefe1b666ae5f428a5f1347b6483339f1003",
+    "bytes": 14873
+  },
+  "seeds": {
+    "url": "https://archive.ics.uci.edu/static/public/236/seeds.zip",
+    "source": "https://archive.ics.uci.edu/dataset/236/seeds",
+    "license": "CC BY 4.0",
+    "sha256": "5033bd71b24592fa70d9b3cc5be02332dc6d03d0b27e6655e6d553f39afab323",
+    "bytes": 9432
+  },
+  "movielens": {
+    "url": "https://files.grouplens.org/datasets/movielens/ml-100k.zip",
+    "source": "https://grouplens.org/datasets/movielens/100k/",
+    "license": "GroupLens research-use terms; see archive README",
+    "sha256": "50d2a982c66986937beb9ffb3aa76efe955bf3d5c6b761f4e3a7cd717c6a3229",
+    "bytes": 4924029
+  },
+  "nab": {
+    "url": "https://raw.githubusercontent.com/numenta/NAB/master/data/realKnownCause/machine_temperature_system_failure.csv",
+    "source": "https://github.com/numenta/NAB",
+    "license": "See NAB repository license and attribution",
+    "sha256": "92bf5b87fc7f9bba8ca0b7ec63ccaac8cb4a1371a258e8c29a10ae9c018d82a4",
+    "bytes": 732223
+  },
+  "nab-labels": {
+    "url": "https://raw.githubusercontent.com/numenta/NAB/master/labels/combined_windows.json",
+    "source": "https://github.com/numenta/NAB",
+    "license": "See NAB repository license and attribution",
+    "sha256": "1e1fbc4601321aad8d0f8b3784c8134299379f68f6c1f7777565f8ffd57ab6b1",
+    "bytes": 15359
+  },
+  "train-images-idx3-ubyte": {
+    "url": "https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz",
+    "source": "https://yann.lecun.com/exdb/mnist/",
+    "license": "See original MNIST provider terms",
+    "sha256": "440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609",
+    "bytes": 9912422
+  },
+  "train-labels-idx1-ubyte": {
+    "url": "https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz",
+    "source": "https://yann.lecun.com/exdb/mnist/",
+    "license": "See original MNIST provider terms",
+    "sha256": "3552534a0a558bbed6aed32b30c495cca23d567ec52cac8be1a0730e8010255c",
+    "bytes": 28881
+  },
+  "t10k-images-idx3-ubyte": {
+    "url": "https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz",
+    "source": "https://yann.lecun.com/exdb/mnist/",
+    "license": "See original MNIST provider terms",
+    "sha256": "8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6",
+    "bytes": 1648877
+  },
+  "t10k-labels-idx1-ubyte": {
+    "url": "https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz",
+    "source": "https://yann.lecun.com/exdb/mnist/",
+    "license": "See original MNIST provider terms",
+    "sha256": "f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6",
+    "bytes": 4542
+  },
+  "bert-model.onnx": {
+    "url": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/resolve/714eb0fa89d2f80546fda750413ed43d93601a13/onnx/model.onnx",
+    "source": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+    "license": "Apache-2.0 model card",
+    "sha256": "252cf7048af94a1599019fef35961b2bd3d6db13df0b0a4b032b92baeae31939",
+    "bytes": 267955711
+  },
+  "bert-vocab.txt": {
+    "url": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/resolve/714eb0fa89d2f80546fda750413ed43d93601a13/onnx/vocab.txt",
+    "source": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+    "license": "Apache-2.0 model card",
+    "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+    "bytes": 231508
+  },
+  "bert-tokenizer.json": {
+    "url": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/resolve/714eb0fa89d2f80546fda750413ed43d93601a13/onnx/tokenizer.json",
+    "source": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+    "license": "Apache-2.0 model card",
+    "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+    "bytes": 711396
+  },
+  "bert-config.json": {
+    "url": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english/resolve/714eb0fa89d2f80546fda750413ed43d93601a13/onnx/config.json",
+    "source": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+    "license": "Apache-2.0 model card",
+    "sha256": "59025ec3116b09d2815c6b10b10dd6bb1caaab2a75d679cf6ebc36efd934f67d",
+    "bytes": 735
+  },
+  "ssd": {
+    "url": "https://media.githubusercontent.com/media/onnx/models/main/validated/vision/object_detection_segmentation/ssd-mobilenetv1/model/ssd_mobilenet_v1_12.onnx",
+    "source": "https://github.com/onnx/models/tree/main/validated/vision/object_detection_segmentation/ssd-mobilenetv1",
+    "license": "See ONNX model zoo model license",
+    "sha256": "b8fba5e404077d4048d27fcd1667e85e27e192eb9bf51e696c46a3acd7d21058",
+    "bytes": 29461455
+  }
+}

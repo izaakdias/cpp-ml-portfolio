@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.22)
+project(detector_native LANGUAGES CXX)
+add_library(detector_native SHARED native.cpp)
+target_compile_features(detector_native PRIVATE cxx_std_20)
+target_compile_options(detector_native PRIVATE -Wall -Wextra -Wpedantic)

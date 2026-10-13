@@ -1,0 +1,8 @@
+{
+  "metrics": {
+    "test_accuracy": 0.9852,
+    "test_samples": 10000,
+    "train_samples": 54000,
+    "validation_accuracy": 0.9855
+  }
+}

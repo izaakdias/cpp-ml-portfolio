@@ -1,0 +1,67 @@
+name: Build portfolio
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: portfolio-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [release, asan]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build libssl-dev libopencv-dev
+      - run: python -m pip install uv==0.10.10
+      - run: uv sync --frozen --extra tracking
+      - run: uv run python tools/bootstrap.py
+      - name: Configure release with native training and vision
+        if: matrix.preset == 'release'
+        run: cmake --preset release -DPORTFOLIO_TORCH=ON -DPORTFOLIO_VISION=ON -DCMAKE_PREFIX_PATH="$(uv run python -c 'import torch; print(torch.utils.cmake_prefix_path)')"
+      - name: Configure sanitizer build
+        if: matrix.preset == 'asan'
+        run: cmake --preset asan -DPORTFOLIO_TORCH=OFF -DPORTFOLIO_VISION=OFF
+      - run: cmake --build --preset ${{ matrix.preset }}
+      - run: ctest --preset ${{ matrix.preset }}
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+      - name: Run real-data applications
+        if: matrix.preset == 'release'
+        run: |
+          uv run python tools/assets.py core
+          build/ml_baselines
+          build/ml_baselines --task regression
+          build/clustering_explorer
+          build/anomaly_monitor
+          build/anomaly_monitor --mode stream
+          build/recommender --epochs 2
+          build/recommender --mode recommend
+          uv run python tools/assets.py mnist
+          build/native_cnn --epochs 1 --limit 1000
+          uv run python tools/export_tabular.py
+          build/inference_engine --mode infer
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install native Android toolchain
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973" "cmake;3.22.1"
+      - name: Compile Kotlin and JNI, build APK
+        working-directory: projects/android-detector
+        run: ./gradlew --no-daemon --max-workers=2 assembleDebug
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-detector-debug
+          path: projects/android-detector/app/build/outputs/apk/debug/app-debug.apk

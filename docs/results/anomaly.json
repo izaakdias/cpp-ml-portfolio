@@ -1,0 +1,22 @@
+{
+  "metrics": {
+    "accuracy": 0.9262295081967213,
+    "alert_rate": 0.19517058041648205,
+    "average_precision": 0.8453572482703393,
+    "f1": 0.7736233854520734,
+    "precision": 0.6458569807037458,
+    "recall": 0.964406779661017,
+    "roc_auc": 0.965541906390919,
+    "test_windows": 4514,
+    "threshold_policy": "validation_max_f1",
+    "validation": {
+      "accuracy": 0.8103677447939743,
+      "alert_rate": 0.30970314576871955,
+      "average_precision": 0.324138131470592,
+      "f1": 0.5694164989939637,
+      "precision": 0.40486409155937053,
+      "recall": 0.9593220338983051,
+      "roc_auc": 0.8660531021614057
+    }
+  }
+}

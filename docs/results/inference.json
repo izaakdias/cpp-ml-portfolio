@@ -1,0 +1,9 @@
+{
+  "model_sha256": "29a0ad9c4cfa31170d92bd7fe3a31e013275108ebf6a36c407a6e38935c030fe",
+  "p50_ms": 0.00525,
+  "p95_ms": 0.005542,
+  "p99_ms": 0.005625,
+  "samples": 200,
+  "scope": "validation_tensor_allocation_inference_output_copy",
+  "warmup": 10
+}
